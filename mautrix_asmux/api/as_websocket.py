@@ -503,14 +503,13 @@ class AppServiceWebsocketHandler:
             ws = self.websockets[az.id]
         except KeyError:
             return make_ping_error("websocket-not-connected")
-        try:
-            raw_pong = await asyncio.wait_for(ws.request("ping"), timeout=45)
-        except asyncio.TimeoutError:
-            return make_ping_error("io-timeout")
-        except Exception as e:
-            self.log.warning(f"Failed to ping {az.name} ({az.id}) via websocket", exc_info=True)
-            return make_ping_error("websocket-fatal-error", message=str(e))
-        if raw_pong:
-            return GlobalBridgeState.deserialize(migrate_state_data(raw_pong))
-        self.log.warning(f"Failed to ping {az.name} ({az.id}) via websocket")
-        return make_ping_error("websocket-unknown-error")
+
+        # WORKAROUND: Don't send "ping" command - mautrix-go v0.26.2 bridges crash
+        # on unknown commands due to nil context bug in unknownCommandHandler.
+        # If websocket is connected, assume bridge is alive. The bridge sends
+        # state updates proactively when things change anyway.
+        # TODO: Remove this workaround once mautrix-go fixes the bug.
+        # See: https://github.com/mautrix/go/issues/XXX (file upstream issue)
+        self.log.debug(f"Skipping ping for {az.name} - websocket connected, assuming alive")
+        bridge_state = BridgeState(state_event=BridgeStateEvent.CONNECTED)
+        return GlobalBridgeState(remote_states=None, bridge_state=bridge_state)
