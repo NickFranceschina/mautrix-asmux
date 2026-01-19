@@ -1,5 +1,6 @@
 # mautrix-asmux - A Matrix application service proxy and multiplexer
 # Copyright (C) 2021 Beeper, Inc. All rights reserved.
+from typing import Optional
 from uuid import UUID
 import asyncio
 import json
@@ -38,6 +39,7 @@ class AppServiceHTTPHandler:
     queues: dict[UUID, AppServiceQueue]
     pusher_locks: dict[UUID, Lock]
     pusher_tasks: dict[UUID, asyncio.Task]
+    _api_server_sess: Optional[aiohttp.ClientSession]
 
     def __init__(
         self,
@@ -49,14 +51,20 @@ class AppServiceHTTPHandler:
         self.mxid_suffix = mxid_suffix
         self.http = http
         self.redis = redis
-        self.api_server_sess = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=5),
-            headers={"User-Agent": HTTPAPI.default_ua},
-        )
+        self._api_server_sess = None
         self.checkpoint_url = checkpoint_url
         self.queues = {}
         self.pusher_locks = {}
         self.pusher_tasks = {}
+
+    @property
+    def api_server_sess(self) -> aiohttp.ClientSession:
+        if self._api_server_sess is None:
+            self._api_server_sess = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=5),
+                headers={"User-Agent": HTTPAPI.default_ua},
+            )
+        return self._api_server_sess
 
     async def setup(self) -> None:
         while True:

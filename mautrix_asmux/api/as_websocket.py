@@ -75,7 +75,7 @@ class AppServiceWebsocketHandler:
     prev_wakeup_push: dict[UUID, float]
     remote_status_endpoint: Optional[str]
     bridge_status_endpoint: Optional[str]
-    sync_proxy: URL
+    sync_proxy: Optional[URL]
     sync_proxy_token: Optional[str]
     sync_proxy_own_address: Optional[str]
     hs_token: str
@@ -84,8 +84,8 @@ class AppServiceWebsocketHandler:
     mxid_suffix: str
     _stopping: bool
     checkpoint_url: str
-    api_server_sess: aiohttp.ClientSession
-    sync_proxy_sess: aiohttp.ClientSession
+    _api_server_sess: Optional[aiohttp.ClientSession]
+    _sync_proxy_sess: Optional[aiohttp.ClientSession]
 
     def __init__(
         self,
@@ -98,7 +98,8 @@ class AppServiceWebsocketHandler:
         self.server = server
         self.remote_status_endpoint = config["mux.remote_status_endpoint"]
         self.bridge_status_endpoint = config["mux.bridge_status_endpoint"]
-        self.sync_proxy = URL(config["mux.sync_proxy.url"])
+        sync_proxy_url = config["mux.sync_proxy.url"]
+        self.sync_proxy = URL(sync_proxy_url) if sync_proxy_url else None
         self.sync_proxy_token = config["mux.sync_proxy.token"]
         self.sync_proxy_own_address = config["mux.sync_proxy.asmux_address"]
         self.hs_token = config["appservice.hs_token"]
@@ -110,10 +111,22 @@ class AppServiceWebsocketHandler:
         self.prev_wakeup_push = {}
         self._stopping = False
         self.checkpoint_url = config["mux.message_send_checkpoint_endpoint"]
-        self.api_server_sess = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=20), headers={"User-Agent": HTTPAPI.default_ua}
-        )
-        self.sync_proxy_sess = aiohttp.ClientSession(headers={"User-Agent": HTTPAPI.default_ua})
+        self._api_server_sess = None
+        self._sync_proxy_sess = None
+
+    @property
+    def api_server_sess(self) -> aiohttp.ClientSession:
+        if self._api_server_sess is None:
+            self._api_server_sess = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=20), headers={"User-Agent": HTTPAPI.default_ua}
+            )
+        return self._api_server_sess
+
+    @property
+    def sync_proxy_sess(self) -> aiohttp.ClientSession:
+        if self._sync_proxy_sess is None:
+            self._sync_proxy_sess = aiohttp.ClientSession(headers={"User-Agent": HTTPAPI.default_ua})
+        return self._sync_proxy_sess
 
     async def stop(self) -> None:
         self._stopping = True

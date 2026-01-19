@@ -112,7 +112,7 @@ class AppServiceProxy(AppServiceServerMixin):
     mxid_suffix: str
     az_locks: dict[UUID, asyncio.Lock]
     checkpoint_url: str
-    api_server_sess: aiohttp.ClientSession
+    _api_server_sess: Optional[aiohttp.ClientSession]
 
     def __init__(
         self,
@@ -133,9 +133,15 @@ class AppServiceProxy(AppServiceServerMixin):
         self.redis = redis
         self.checkpoint_url = checkpoint_url
         self.az_locks = {}
-        self.api_server_sess = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=5), headers={"User-Agent": HTTPAPI.default_ua}
-        )
+        self._api_server_sess = None
+
+    @property
+    def api_server_sess(self) -> aiohttp.ClientSession:
+        if self._api_server_sess is None:
+            self._api_server_sess = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=5), headers={"User-Agent": HTTPAPI.default_ua}
+            )
+        return self._api_server_sess
 
     def get_appservice_lock(self, az):
         if az.id not in self.az_locks:
