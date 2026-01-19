@@ -114,6 +114,7 @@ class ManagementAPI:
         )
 
         self.public_app = web.Application()
+        self.public_app.router.add_get("/health", self.health_check)
         self.public_app.router.add_get("/config/{prefix}/register", self.register_config)
         self.public_app.router.add_get("/config/{prefix}/download", self.download_config)
 
@@ -436,6 +437,9 @@ class ManagementAPI:
         if not az.check_password(password):
             raise Error.invalid_config_password
         return az
+
+    async def health_check(self, req: web.Request) -> web.Response:
+        return web.json_response({"ok": True})
 
     async def register_config(self, req: web.Request) -> web.Response:
         az = await self._authorize_config_download(req)

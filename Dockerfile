@@ -22,4 +22,7 @@ RUN pip install --no-cache-dir .
 ENV UID=1337 GID=1337
 VOLUME /data
 
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget -q -O /dev/null http://127.0.0.1:29326/_matrix/asmux/public/health || exit 1
+
 CMD ["/opt/mautrix-asmux/docker-run.sh"]
