@@ -1,24 +1,23 @@
-FROM docker.io/alpine:3.14
+FROM docker.io/alpine:3.20
 
 RUN apk add --no-cache \
-      python3 py3-pip py3-setuptools py3-wheel \
-      py3-aiohttp \
-      py3-ruamel.yaml \
-      py3-attrs \
-      py3-idna \
-      py3-cryptography \
-      py3-bcrypt \
-      # Other dependencies
+      python3 py3-pip py3-virtualenv \
       ca-certificates \
       su-exec
 
+# Create virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 COPY requirements.txt /opt/mautrix-asmux/requirements.txt
 WORKDIR /opt/mautrix-asmux
-RUN pip3 install pip -U
-RUN apk add build-base python3-dev && pip3 install -r requirements.txt && apk del build-base python3-dev
+
+RUN apk add --no-cache --virtual .build-deps build-base python3-dev libffi-dev \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apk del .build-deps
 
 COPY . /opt/mautrix-asmux
-RUN pip3 install .
+RUN pip install --no-cache-dir .
 
 ENV UID=1337 GID=1337
 VOLUME /data

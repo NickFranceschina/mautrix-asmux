@@ -6,8 +6,8 @@ import asyncio
 import json
 import logging
 
-from aioredis import Redis
-import aioredis
+from redis.asyncio import Redis
+import redis.asyncio as aioredis
 
 from mautrix.types import DeviceLists
 

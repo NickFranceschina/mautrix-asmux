@@ -11,8 +11,8 @@ import logging
 import time
 
 from aiohttp import hdrs, web
-from aioredis import Redis
-from aioredis.lock import Lock
+from redis.asyncio import Redis
+from redis.asyncio.lock import Lock
 from multidict import CIMultiDict, MultiDict
 from yarl import URL
 import aiohttp

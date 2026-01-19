@@ -10,7 +10,7 @@ import logging
 import socket
 import time
 
-from aioredis import Redis
+from redis.asyncio import Redis
 import aiohttp
 
 from mautrix.types import UserID

@@ -5,7 +5,7 @@ from uuid import UUID
 import asyncio
 import logging
 
-from aioredis import Redis
+from redis.asyncio import Redis
 
 from mautrix.types import RoomID
 from mautrix_asmux.database.table import AppService, Room, User

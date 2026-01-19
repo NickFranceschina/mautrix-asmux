@@ -7,8 +7,8 @@ import logging
 import time
 
 from aiohttp import ClientError, ClientTimeout, ContentTypeError
-from aioredis import Redis
-from aioredis.lock import Lock
+from redis.asyncio import Redis
+from redis.asyncio.lock import Lock
 from yarl import URL
 import aiohttp
 

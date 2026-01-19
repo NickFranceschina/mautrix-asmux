@@ -9,7 +9,7 @@ import time
 
 from aiohttp import web
 from aiohttp.http import WSCloseCode
-from aioredis import Redis
+from redis.asyncio import Redis
 from yarl import URL
 import aiohttp
 
