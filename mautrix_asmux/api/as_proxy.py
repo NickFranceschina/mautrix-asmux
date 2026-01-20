@@ -323,9 +323,14 @@ class AppServiceProxy(AppServiceServerMixin):
         events: list[JSON],
         extra_data: JSON,
         ephemeral: Optional[list[JSON]] = None,
+        to_device: Optional[list[JSON]] = None,
         device_otk_count: Optional[dict[UserID, DeviceOTKCount]] = None,
         device_lists: Optional[DeviceLists] = None,
+        otk_counts: Optional[dict[UserID, DeviceOTKCount]] = None,  # Synapse 1.144+ sends this
     ) -> Any:
+        # Handle both old (device_otk_count) and new (otk_counts) parameter names
+        if otk_counts is not None and device_otk_count is None:
+            device_otk_count = otk_counts
         outgoing_txn_id = extra_data.get("fi.mau.syncproxy.transaction_id", txn_id)
         log_txn_id = (
             txn_id if outgoing_txn_id == txn_id else f"{outgoing_txn_id} (wrapped in {txn_id})"
